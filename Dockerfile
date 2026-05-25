@@ -27,7 +27,7 @@ RUN curl -fsSL https://tailscale.com/install.sh | sh
 
 # إنشاء مستخدم الـ RDP السريع وتعيين كلمة المرور وصلاحيات الـ Sudo
 RUN useradd -m -s /bin/bash RDP && \
-    echo "RDP:FastPass123!" | chpasswd && \
+    echo "RDP:123456" | chpasswd && \
     adduser RDP sudo
 
 # نسخ سكربت التشغيل ومنحه صلاحيات التنفيذ
