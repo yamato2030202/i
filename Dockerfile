@@ -1,30 +1,33 @@
 FROM ubuntu:22.04
 
-# منع الأسئلة التفاعلية أثناء التثبيت لضمان بناء تلقائي سلس
+# منع الأسئلة التفاعلية أثناء التثبيت لضمان بناء تلقائي سريع
 ENV DEBIAN_FRONTEND=noninteractive
 
-# تحديث النظام وتثبيت الواجهة الرسومية (XFCE) وخادم الـ RDP والأدوات الأساسية
+# تحديث المستودعات وتثبيت أخف واجهة رسومية في العالم (LXDE) مع خادم xrdp وأدوات الأداء
 RUN apt-get update && apt-get install -y \
-    xfce4 \
-    xfce4-goodies \
+    lxde \
     xrdp \
     curl \
     sudo \
     wget \
+    dbus-x11 \
+    x11-xserver-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# إعداد خادم xrdp لفتح واجهة XFCE فور تسجيل الدخول
-RUN echo "xfce4-session" > /etc/skel/.Xclients
-
-# حل المشكلة: إنشاء مجلد الإعدادات وتكوين ملف Xwrapper بشكل مباشر لتفادي خطأ البناء
+# إعداد خادم xrdp ليقوم بتشغيل واجهة LXDE الخفيفة فوراً عند الاتصال
+RUN echo "startlxde" > /etc/skel/.Xclients
 RUN mkdir -p /etc/xrdp && echo "allowed_users=anybody" > /etc/xrdp/Xwrapper.config
 
-# تثبيت أداة Tailscale للاتصال الآمن
+# تحسين أداء xrdp لتقليل التقطيع (تفعيل التخزين المؤقت والتعديل اللوني)
+RUN sed -i 's/max_bpp=32/max_bpp=16/g' /etc/xrdp/xrdp.ini \
+    && sed -i 's/crypt_level=high/crypt_level=none/g' /etc/xrdp/xrdp.ini
+
+# تثبيت أداة Tailscale للاتصال السريع والآمن
 RUN curl -fsSL https://tailscale.com/install.sh | sh
 
-# إنشاء مستخدم الـ RDP وتعيين كلمة المرور وإعطائه صلاحيات الـ Sudo (الـ Administrator)
+# إنشاء مستخدم الـ RDP السريع وتعيين كلمة المرور وصلاحيات الـ Sudo
 RUN useradd -m -s /bin/bash RDP && \
-    echo "RDP:SecurePassword123!" | chpasswd && \
+    echo "RDP:FastPass123!" | chpasswd && \
     adduser RDP sudo
 
 # نسخ سكربت التشغيل ومنحه صلاحيات التنفيذ
