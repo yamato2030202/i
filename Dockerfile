@@ -15,7 +15,9 @@ RUN apt-get update && apt-get install -y \
 
 # إعداد خادم xrdp لفتح واجهة XFCE فور تسجيل الدخول
 RUN echo "xfce4-session" > /etc/skel/.Xclients
-RUN sed -i 's/allowed_users=console/allowed_users=anybody/g' /etc/xrdp/Xwrapper.config
+
+# حل المشكلة: إنشاء مجلد الإعدادات وتكوين ملف Xwrapper بشكل مباشر لتفادي خطأ البناء
+RUN mkdir -p /etc/xrdp && echo "allowed_users=anybody" > /etc/xrdp/Xwrapper.config
 
 # تثبيت أداة Tailscale للاتصال الآمن
 RUN curl -fsSL https://tailscale.com/install.sh | sh
