@@ -8,8 +8,10 @@ RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list \
     && sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list \
     && sed -i '/stretch-updates/d' /etc/apt/sources.list
 
-# تحديث المستودعات وتثبيت واجهة LXDE الخفيفة مع خادم xrdp وأدوات الأداء
+# تحديث المستودعات وتثبيت الأدوات الأساسية ودعم HTTPS أولاً
 RUN apt-get update && apt-get install -y --force-yes \
+    apt-transport-https \
+    ca-certificates \
     lxde \
     xrdp \
     curl \
@@ -27,7 +29,7 @@ RUN mkdir -p /etc/xrdp && echo "allowed_users=anybody" > /etc/xrdp/Xwrapper.conf
 RUN sed -i 's/max_bpp=32/max_bpp=16/g' /etc/xrdp/xrdp.ini \
     && sed -i 's/crypt_level=high/crypt_level=none/g' /etc/xrdp/xrdp.ini
 
-# تثبيت أداة Tailscale للاتصال السريع والآمن
+# تثبيت أداة Tailscale للاتصال السريع والآمن (الآن ستعمل بدون مشاكل)
 RUN curl -fsSL https://tailscale.com/install.sh | sh
 
 # إنشاء مستخدم الـ RDP السريع وتعيين كلمة المرور وصلاحيات الـ Sudo
