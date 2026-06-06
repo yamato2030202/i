@@ -8,10 +8,16 @@ RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list \
     && sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list \
     && sed -i '/stretch-updates/d' /etc/apt/sources.list
 
-# تحديث المستودعات وتثبيت الأدوات الأساسية ودعم HTTPS أولاً لتفادي مشاكل التحميل
+# تحديث المستودعات وتثبيت الأدوات الأساسية، خادم الويب Apache، و بيئة PHP اللازمة لتشغيل اللوحة
 RUN apt-get update && apt-get install -y --force-yes \
     apt-transport-https \
     ca-certificates \
+    apache2 \
+    php \
+    php-mysql \
+    php-xml \
+    php-curl \
+    mysql-server \
     lxde \
     xrdp \
     curl \
@@ -19,7 +25,12 @@ RUN apt-get update && apt-get install -y --force-yes \
     wget \
     dbus-x11 \
     x11-xserver-utils \
+    git \
     && rm -rf /var/lib/apt/lists/*
+
+# تحميل ملفات لوحة Open Game Panel (OGP) مباشرة إلى مسار الويب الرئيسي
+RUN rm -rf /var/www/html/* && \
+    git clone https://github.com/OpenGamePanel/OGP-Website.git /var/www/html/
 
 # إعداد خادم xrdp ليقوم بتشغيل واجهة LXDE الخفيفة فوراً عند الاتصال
 RUN echo "startlxde" > /etc/skel/.Xclients
