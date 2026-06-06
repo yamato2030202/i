@@ -1,24 +1,22 @@
 #!/bin/bash
 
-# 1. تشغيل محرك Tailscale في الخلفية عبر شبكة المستخدم (Userspace) لتوافق تام مع Railway
-tailscaled --state=/var/lib/tailscale/tailscaled.state --tun=userspace-networking &
+# تأمين تشغيل خادم ماريادب/مايسكول إذا كان متاحاً محلياً
+service mysql start 2>/dev/null
 
-# الانتظار للتأكد من أن المحرك يعمل بالكامل
-sleep 5
+# إعطاء الصلاحيات الصحيحة لمجلد الويب الخاص بلوحة OGP
+chown -R www-data:www-data /var/www/html/ 2>/dev/null
+chmod -R 755 /var/www/html/ 2>/dev/null
 
-# 2. ربط الحاوية بحساب Tailscale الخاص بك عبر المفتاح السري
-if [ -n "$TAILSCALE_AUTH_KEY" ]; then
-    echo "Connecting to Tailscale..."
-    tailscale up --authkey=${TAILSCALE_AUTH_KEY} --hostname=railway-fast-rdp
-else
-    echo "ERROR: TAILSCALE_AUTH_KEY variable is missing!"
-    exit 1
-fi
+# تفعيل مود التوجيه (Rewrite) في الـ Apache
+a2enmod rewrite 2>/dev/null
 
-# 3. تنظيف ملفات الـ PID السابقة لخادم RDP لمنع تعليق التشغيل
-rm -f /var/run/xrdp/xrdp*.pid
+# أخذ المنفذ الديناميكي الذي تفرضه منصة Railway (غالباً 8080) وضبط Apache عليه تلقائياً
+RAILWAY_PORT=${PORT:-8080}
+echo "Configuring Apache to listen on port: $RAILWAY_PORT"
 
-# 4. تشغيل خادم xrdp وإبقائه يعمل في المقدمة للحفاظ على استمرار الحاوية
-echo "Starting RDP Server..."
-xrdp-sesman --nodaemon &
-xrdp --nodaemon
+sed -i "s/Listen .*/Listen $RAILWAY_PORT/g" /etc/apache2/ports.conf
+sed -i "s/<VirtualHost \*:*>/<VirtualHost \*:$RAILWAY_PORT>/g" /etc/apache2/sites-available/000-default.conf
+
+# تشغيل خادم Apache في الواجهة الأمامية (Foreground) لمنع الحاوية من الإغلاق المفاجئ ولتستجيب لـ Railway
+echo "Starting Apache Web Server..."
+exec apache2ctl -D FOREGROUND
