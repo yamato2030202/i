@@ -8,7 +8,7 @@ RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list \
     && sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list \
     && sed -i '/stretch-updates/d' /etc/apt/sources.list
 
-# تحديث المستودعات وتثبيت الأدوات الأساسية ودعم HTTPS أولاً
+# تحديث المستودعات وتثبيت الأدوات الأساسية ودعم HTTPS أولاً لتفادي مشاكل التحميل
 RUN apt-get update && apt-get install -y --force-yes \
     apt-transport-https \
     ca-certificates \
@@ -29,7 +29,7 @@ RUN mkdir -p /etc/xrdp && echo "allowed_users=anybody" > /etc/xrdp/Xwrapper.conf
 RUN sed -i 's/max_bpp=32/max_bpp=16/g' /etc/xrdp/xrdp.ini \
     && sed -i 's/crypt_level=high/crypt_level=none/g' /etc/xrdp/xrdp.ini
 
-# تثبيت أداة Tailscale للاتصال السريع والآمن (الآن ستعمل بدون مشاكل)
+# تثبيت أداة Tailscale للاتصال السريع والآمن
 RUN curl -fsSL https://tailscale.com/install.sh | sh
 
 # إنشاء مستخدم الـ RDP السريع وتعيين كلمة المرور وصلاحيات الـ Sudo
@@ -41,8 +41,8 @@ RUN useradd -m -s /bin/bash RDP && \
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# فتح المنفذ الخاص بالـ RDP
-EXPOSE 3389
+# فتح المنفذ الديناميكي (ستقوم Railway بالتحكم به عبر متغير PORT)
+EXPOSE 8080
 
 # تشغيل السكربت عند بدء الحاوية
 CMD ["/start.sh"]
