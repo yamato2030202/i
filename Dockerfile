@@ -1,10 +1,15 @@
-FROM ubuntu:22.04
+FROM debian:9-slim
 
 # منع الأسئلة التفاعلية أثناء التثبيت لضمان بناء تلقائي سريع
 ENV DEBIAN_FRONTEND=noninteractive
 
-# تحديث المستودعات وتثبيت أخف واجهة رسومية في العالم (LXDE) مع خادم xrdp وأدوات الأداء
-RUN apt-get update && apt-get install -y \
+# تعديل المستودعات لتشير إلى الأرشيف لأن Debian 9 لم تعد مدعومة رسميًا
+RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list \
+    && sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list \
+    && sed -i '/stretch-updates/d' /etc/apt/sources.list
+
+# تحديث المستودعات وتثبيت واجهة LXDE الخفيفة مع خادم xrdp وأدوات الأداء
+RUN apt-get update && apt-get install -y --force-yes \
     lxde \
     xrdp \
     curl \
